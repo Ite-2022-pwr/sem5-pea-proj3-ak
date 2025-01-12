@@ -19,7 +19,7 @@ type AntColonyOptimizationSolver struct {
 	q                    float64 // stała do obliczania ilości pozostawionych feromonów
 }
 
-func NewAntColonyOptimizationSolver(G graph.Graph, ants, alpha, beta, iterations int, pheromoneEvaporation, pheromoneInit, q float64) *AntColonyOptimizationSolver {
+func NewAntColonyOptimizationSolver(G graph.Graph, ants, alpha, beta, iterations int, pheromoneEvaporation, q float64) *AntColonyOptimizationSolver {
 	return &AntColonyOptimizationSolver{
 		graph:                G,
 		ants:                 ants,
@@ -27,7 +27,6 @@ func NewAntColonyOptimizationSolver(G graph.Graph, ants, alpha, beta, iterations
 		beta:                 beta,
 		iterations:           iterations,
 		pheromoneEvaporation: pheromoneEvaporation,
-		pheromoneInit:        pheromoneInit,
 		q:                    q,
 	}
 }
@@ -42,6 +41,9 @@ func (aco *AntColonyOptimizationSolver) GetGraph() graph.Graph {
 
 func (aco *AntColonyOptimizationSolver) AntColonyOptimization(startVertex int) (int, []int) {
 	bestCost, bestPath := math.MaxInt, []int{}
+
+	c, _ := NewGreedySolver(aco.GetGraph()).Solve(startVertex)
+	aco.pheromoneInit = float64(aco.ants) / float64(c)
 
 	pheromones := aco.initializePheromones()
 
@@ -60,6 +62,21 @@ func (aco *AntColonyOptimizationSolver) AntColonyOptimization(startVertex int) (
 		}
 
 		aco.updatePheromones(pheromones, allPaths, allCosts)
+	}
+
+	if bestPath[0] != startVertex {
+		startVertexIdx := 1
+		for i := 1; i < len(bestPath); i++ {
+			if bestPath[i] == startVertex {
+				startVertexIdx = i
+				break
+			}
+		}
+		temp := make([]int, len(bestPath))
+		n := len(bestPath[startVertexIdx:])
+		copy(temp, bestPath[startVertexIdx:])
+		copy(temp[n:], bestPath[:startVertexIdx])
+		copy(bestPath, temp)
 	}
 
 	return bestCost, bestPath

@@ -10,13 +10,13 @@ import (
 func main() {
 	//menu.RunMenu()
 
-	G, err := utils.ReadGraphFromFile("data/input/ftv170.txt")
+	G, err := utils.ReadGraphFromFile("data/input/ftv55.txt")
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tsp := atsp.NewAntColonyOptimizationSolver(G, 3, 1, 3, 100, 0.3, 1.0, 100.0)
+	tsp := atsp.NewAntColonyOptimizationSolver(G, G.GetVerticesCount(), 1, 4, 20, 0.5, 100.0)
 
 	benchmark.MeasureSolveTime(tsp, "ACO")
 }
