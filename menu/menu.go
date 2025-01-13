@@ -23,11 +23,21 @@ type AnnealingOpts struct {
 	InitialTemperature float64
 }
 
+type AntColonyOpts struct {
+	Ants                  int
+	Alpha                 int
+	Beta                  int
+	Q                     float64
+	Iterations            int
+	PheromonesEvaporation float64
+}
+
 type Options struct {
 	Graph graph.Graph
 
 	Tabu      TabuOpts
 	Annealing AnnealingOpts
+	AntColony AntColonyOpts
 }
 
 var opts = Options{}
@@ -56,11 +66,9 @@ func RunMenu() {
 		case 4:
 			GenerateGraph()
 		case 5:
-			SetTabuOptions()
-		case 6:
-			SetSimulatedAnnealingOptions()
+			SetAntColonyOptions()
 		default:
-			log.Println(utils.RedColor("[!!] Tylko opcje 0-6"))
+			log.Println(utils.RedColor("[!!] Tylko opcje 0-5"))
 		}
 	}
 }
@@ -72,8 +80,7 @@ func PrintOptions() {
 	fmt.Println("2. Wyświetl graf")
 	fmt.Println("3. Wykonaj algorytm rozwiązywania ATSP")
 	fmt.Println("4. Wygeneruj graf")
-	fmt.Println("5. Ustaw parametry Tabu Search")
-	fmt.Println("6. Ustaw parametry Simulated Annealing")
+	fmt.Println("5. Ustaw parametry Ant Colony optimization")
 	fmt.Print("> ")
 }
 
@@ -99,8 +106,7 @@ func RunAlgorithm() {
 	}
 
 	fmt.Println("Wybierz algorytm:")
-	fmt.Println("0. Tabu Search")
-	fmt.Println("1. Simulated Annealing")
+	fmt.Println("0. Ant Colony Optimization")
 	fmt.Print("> ")
 
 	var choice int
@@ -113,11 +119,9 @@ func RunAlgorithm() {
 	}
 	switch choice {
 	case 0:
-		tsp, prompt = atsp.NewTabuSearchSolver(opts.Graph, opts.Tabu.Tenure, opts.Tabu.MaxIterations, opts.Tabu.MoveType), fmt.Sprintf("Tabu Search (%v)", opts.Tabu)
-	case 1:
-		tsp, prompt = atsp.NewSimulatedAnnealingSolver(opts.Graph, opts.Annealing.CoolingRate, opts.Annealing.MinimalTemperature, opts.Annealing.InitialTemperature, opts.Annealing.Epochs), fmt.Sprintf("Simulated Annealing (%v)", opts.Annealing)
+		tsp, prompt = atsp.NewAntColonyOptimizationSolver(opts.Graph, opts.AntColony.Ants, opts.AntColony.Alpha, opts.AntColony.Beta, opts.AntColony.Iterations, opts.AntColony.PheromonesEvaporation, opts.AntColony.Q), fmt.Sprintf("Ant Colony Optimization (%v)", opts.AntColony)
 	default:
-		log.Println(utils.RedColor("[!!] Tylko opcje 0-2"))
+		log.Println(utils.RedColor("[!!] Tylko opcja 0"))
 		return
 	}
 
@@ -196,6 +200,52 @@ func SetSimulatedAnnealingOptions() {
 	}
 
 	opts.Annealing = AnnealingOpts{CoolingRate: coolingRate, Epochs: epochs, MinimalTemperature: minTemp, InitialTemperature: initTemp}
+}
+
+func SetAntColonyOptions() {
+	fmt.Print("Podaj liczbę mrówek: ")
+	var ants int
+	if _, err := fmt.Scanln(&ants); err != nil {
+		log.Println(utils.RedColor(err))
+		return
+	}
+
+	fmt.Print("Podaj alfę: ")
+	var alpha int
+	if _, err := fmt.Scanln(&alpha); err != nil {
+		log.Println(utils.RedColor(err))
+		return
+	}
+
+	fmt.Print("Podaj betę: ")
+	var beta int
+	if _, err := fmt.Scanln(&beta); err != nil {
+		log.Println(utils.RedColor(err))
+		return
+	}
+
+	fmt.Print("Podaj liczbę iteracji: ")
+	var iterations int
+	if _, err := fmt.Scanln(&iterations); err != nil {
+		log.Println(utils.RedColor(err))
+		return
+	}
+
+	fmt.Print("Podaj współczynnik parowania feromonów: ")
+	var evaporation float64
+	if _, err := fmt.Scanln(&evaporation); err != nil {
+		log.Println(utils.RedColor(err))
+		return
+	}
+
+	fmt.Print("Podaj ilość pozostawianych przez mrówki feromonu: ")
+	var q float64
+	if _, err := fmt.Scanln(&q); err != nil {
+		log.Println(utils.RedColor(err))
+		return
+	}
+
+	opts.AntColony = AntColonyOpts{Ants: ants, Alpha: alpha, Beta: beta, Iterations: iterations, PheromonesEvaporation: evaporation, Q: q}
 }
 
 func GenerateGraph() {

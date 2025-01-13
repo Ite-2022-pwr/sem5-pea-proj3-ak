@@ -16,3 +16,9 @@ var OptimalSolutions = map[string]int{
 	"ftv55.txt": 1608,
 	"ftv64.txt": 1839,
 }
+
+var OptimalSolutionsACO = map[string]int{
+	"br17.txt":   39,
+	"ftv55.txt":  1608,
+	"ftv170.txt": 2755,
+}
