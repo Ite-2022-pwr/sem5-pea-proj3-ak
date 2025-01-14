@@ -105,7 +105,7 @@ func TestTabuSearchTenures() {
 func TestTabuSearchBestParams() {
 	prompt := "Tabu Search"
 
-	for filename, optimalCost := range OptimalSolutions {
+	for filename, optimalCost := range OptimalSolutionsACO {
 		G, err := utils.ReadGraphFromFile(filepath.Join(InputDirectory, filename))
 		if err != nil {
 			log.Fatal(utils.RedColor(err))
@@ -119,9 +119,9 @@ func TestTabuSearchBestParams() {
 			result = append(result, []string{
 				fmt.Sprintf("%d", cost),
 				fmt.Sprintf("%d", CalculateError(cost, optimalCost)),
-				fmt.Sprintf("%.3f", elapsed/1000000000.0),
+				fmt.Sprintf("%.7f", elapsed/1000000000.0),
 			})
-			utils.SaveCSV(filepath.Join(OutputDirectory, fmt.Sprintf("TS_CR_%v_best.csv", filename)), result)
+			utils.SaveCSV(filepath.Join(OutputDirectory, fmt.Sprintf("TS_%v_best.csv", filename)), result)
 		}
 	}
 }

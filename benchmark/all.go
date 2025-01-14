@@ -82,3 +82,83 @@ func AllLocalSearch() {
 	utils.SaveCSV(filepath.Join(OutputDirectory, "tabu_search2.csv"), resultTS)
 	utils.SaveCSV(filepath.Join(OutputDirectory, "simulated_annealing2.csv"), resultSA)
 }
+
+func AllMetaheuristicTime() {
+	var result [][]string
+
+	log.Println(utils.BlueColor("[+] Rozpoczynanie testowania Dynamic Programming"))
+	for numOfCities := MinVertices; numOfCities <= MaxVertices; numOfCities++ {
+		var tsp atsp.ATSP
+		totalTimeTS, totalTimeSA, totalTimeACO := 0.0, 0.0, 0.0
+
+		for i := 0; i < Rounds; i++ {
+			log.Println(utils.BlueColor(fmt.Sprintf("Miast: %d, %d/%d", numOfCities, i+1, Rounds)))
+			G, _ := generator.GenerateAdjacencyMatrix(numOfCities)
+
+			tsp = atsp.NewTabuSearchSolver(G, 20, 1000, atsp.MovingInsert)
+			totalTimeTS += MeasureSolveTime(tsp, "Tabu Search")
+
+			tsp = atsp.NewSimulatedAnnealingSolver(G, 0.975, 1e-12, 9000, 4000)
+			totalTimeSA += MeasureSolveTime(tsp, "Simulated Annealing")
+
+			tsp = atsp.NewAntColonyOptimizationSolver(G, 10, 1, 3, 20, 0.25, 50)
+			totalTimeACO += MeasureSolveTime(tsp, "Ant Colony Optimization")
+		}
+		avgTimeTS := totalTimeTS / float64(Rounds)
+		avgTimeSA := totalTimeSA / float64(Rounds)
+		avgTimeACO := totalTimeACO / float64(Rounds)
+
+		result = append(result, []string{
+			fmt.Sprintf("%d", numOfCities),
+			fmt.Sprintf("%f", avgTimeTS/1000000000.0),
+			fmt.Sprintf("%f", avgTimeSA/1000000000.0),
+			fmt.Sprintf("%f", avgTimeACO/1000000000.0),
+		})
+		utils.SaveCSV(filepath.Join(OutputDirectory, "COMPARE_TIME.csv"), result)
+		debug.FreeOSMemory()
+	}
+
+	utils.SaveCSV(filepath.Join(OutputDirectory, "COMPARE_TIME.csv"), result)
+}
+
+func AllMetaheuristicError() {
+	var result [][]string
+
+	log.Println(utils.BlueColor("[+] Rozpoczynanie testowania Dynamic Programming"))
+	for numOfCities := MinVertices; numOfCities <= MaxVertices; numOfCities++ {
+		var tsp atsp.ATSP
+		log.Println(utils.BlueColor(fmt.Sprintf("Miast: %d", numOfCities)))
+		G, _ := generator.GenerateAdjacencyMatrix(numOfCities)
+		tsp = atsp.NewDynamicProgrammingSolver(G)
+		_, bestCost := MeasureSolveTimeWithCost(tsp, "Dynamic Programming")
+		log.Println(utils.BlueColor(fmt.Sprintf("Optymalny wynik: %d", bestCost)))
+		debug.FreeOSMemory()
+
+		tsp = atsp.NewTabuSearchSolver(G, 20, 1000, atsp.MovingInsert)
+		timeTS, costTS := MeasureSolveTimeWithCost(tsp, "Tabu Search")
+
+		tsp = atsp.NewSimulatedAnnealingSolver(G, 0.975, 1e-12, 9000, 4000)
+		timeSA, costSA := MeasureSolveTimeWithCost(tsp, "Simulated Annealing")
+
+		tsp = atsp.NewAntColonyOptimizationSolver(G, 10, 1, 3, 20, 0.25, 50)
+		timeACO, costACO := MeasureSolveTimeWithCost(tsp, "Ant Colony Optimization")
+
+		result = append(result, []string{
+			fmt.Sprintf("%d", numOfCities),
+			fmt.Sprintf("%d", bestCost),
+			fmt.Sprintf("%d", costTS),
+			fmt.Sprintf("%d", CalculateError(costTS, bestCost)),
+			fmt.Sprintf("%f", timeTS),
+			fmt.Sprintf("%d", costSA),
+			fmt.Sprintf("%d", CalculateError(costSA, bestCost)),
+			fmt.Sprintf("%f", timeSA),
+			fmt.Sprintf("%d", costACO),
+			fmt.Sprintf("%d", CalculateError(costACO, bestCost)),
+			fmt.Sprintf("%f", timeACO),
+		})
+		utils.SaveCSV(filepath.Join(OutputDirectory, "COMPARE.csv"), result)
+		debug.FreeOSMemory()
+	}
+
+	utils.SaveCSV(filepath.Join(OutputDirectory, "COMPARE.csv"), result)
+}

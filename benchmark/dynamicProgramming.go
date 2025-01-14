@@ -17,7 +17,7 @@ func DynamicProgramming() {
 
 	log.Println(utils.BlueColor("[+] Rozpoczynanie testowania Dynamic Programming"))
 	for numOfCities := MinVertices; numOfCities <= MaxVertices; numOfCities++ {
-		for i := 0; i < NumberOfGraphs; i++ {
+		for i := 0; i < NumberOfGraphs/NumberOfGraphs; i++ {
 			log.Println(utils.BlueColor(fmt.Sprintf("Miast: %d, test: %d/%d", numOfCities, i+1, NumberOfGraphs)))
 			G, _ := generator.GenerateAdjacencyMatrix(numOfCities)
 			tsp := atsp.NewDynamicProgrammingSolver(G)

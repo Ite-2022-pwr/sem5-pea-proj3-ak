@@ -5,7 +5,9 @@ import (
 	"log"
 	"path/filepath"
 	"pea3/atsp"
+	"pea3/generator"
 	"pea3/utils"
+	"runtime/debug"
 )
 
 var (
@@ -150,7 +152,7 @@ func TestACOIterations() {
 				tsp := atsp.NewAntColonyOptimizationSolver(G, ants[0], alphas[0], betas[0], acoIterations[i], evaporations[0], qs[0])
 				elapsed, cost := MeasureSolveTimeWithCost(tsp, prompt)
 				result = append(result, []string{
-					"EVAPORATION",
+					"ITERATIONS",
 					fmt.Sprintf("%d", acoIterations[i]),
 					fmt.Sprintf("%d", cost),
 					fmt.Sprintf("%d", CalculateError(cost, optimalCost)),
@@ -189,4 +191,57 @@ func TestACOQs() {
 			}
 		}
 	}
+}
+
+func TestACOOptimal() {
+	prompt := "Ant Colony Optimization"
+
+	for filename, optimalCost := range OptimalSolutions {
+		G, err := utils.ReadGraphFromFile(filepath.Join(InputDirectory, filename))
+		if err != nil {
+			log.Fatal(utils.RedColor(err))
+		}
+
+		var result [][]string
+		for r := 0; r < Rounds; r++ {
+			log.Println(utils.BlueColor(fmt.Sprintf("ACO optimal, test: %d/%d", r+1, Rounds)))
+			tsp := atsp.NewAntColonyOptimizationSolver(G, 10, 1, 3, 20, 0.25, 50)
+			elapsed, cost := MeasureSolveTimeWithCost(tsp, prompt)
+			result = append(result, []string{
+				"OPTIMAL",
+				fmt.Sprintf("%d", cost),
+				fmt.Sprintf("%d", CalculateError(cost, optimalCost)),
+				fmt.Sprintf("%.3f", elapsed/1000000000.0),
+			})
+			utils.SaveCSV(filepath.Join(OutputDirectory, fmt.Sprintf("ACO_OPT2_%v.csv", filename)), result)
+		}
+	}
+}
+
+func TestACOLimit() {
+	promptSA := utils.BlueColor("Ant Colony Optimization")
+
+	totalTimeACO := 0.0      // zmienne do przechowywania czasu rozwiązania
+	var resultACO [][]string // wyniki
+
+	log.Println(utils.BlueColor("[+] Rozpoczynanie testowania Algorytmów"))
+	for numOfCities := 600; numOfCities <= 1000; numOfCities += 100 {
+		for i := 0; i < Rounds; i++ {
+			log.Println(utils.BlueColor(fmt.Sprintf("Miast: %d, test: %d/%d", numOfCities, i+1, Rounds)))
+			G, _ := generator.GenerateAdjacencyMatrix(numOfCities)
+			var tsp atsp.ATSP
+
+			tsp = atsp.NewAntColonyOptimizationSolver(G, 10, 1, 3, 20, 0.25, 50)
+			totalTimeACO += MeasureSolveTime(tsp, promptSA)
+			debug.FreeOSMemory()
+		}
+
+		// średni czas dla każdego z algorytmów
+		avgTimeACO := totalTimeACO / float64(Rounds)
+		resultACO = append(resultACO, []string{fmt.Sprintf("%d", numOfCities), fmt.Sprintf("%.7f", avgTimeACO/1000000000.0)})
+		utils.SaveCSV(filepath.Join(OutputDirectory, "LIMIT2.csv"), resultACO)
+		totalTimeACO = 0.0
+	}
+
+	utils.SaveCSV(filepath.Join(OutputDirectory, "LIMIT2.csv"), resultACO)
 }
